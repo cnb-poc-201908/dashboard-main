@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.bmw</groupId>
-	<artifactId>progress</artifactId>
+	<artifactId>dashboard-main</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>progress</name>
 	<description>spring cloud progress project for bmw poc</description>
