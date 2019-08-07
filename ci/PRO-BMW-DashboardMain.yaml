@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pro-bmw-dashboardmain
+  namespace: pro
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pro-bmw-dashboardmain
+    spec:
+      containers:
+        - name: pro-bmw-dashboardmain
+          image: registry.cn-beijing.aliyuncs.com/bmwpoc/pro-bmw-dashboardmain:{version}
+          ports:
+            - name: http-port
+              containerPort: 20003
+          env:
+            - name: spring_profiles_active
+              value: k8s
+      imagePullSecrets:
+        - name: bmwpoc

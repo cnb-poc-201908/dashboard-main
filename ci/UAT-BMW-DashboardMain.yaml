@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: uat-bmw-dashboardmain
+  namespace: uat
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: uat-bmw-dashboardmain
+    spec:
+      containers:
+        - name: uat-bmw-dashboardmain
+          image: registry.cn-beijing.aliyuncs.com/bmwpoc/uat-bmw-dashboardmain:{version}
+          ports:
+            - name: http-port
+              containerPort: 20003
+          env:
+            - name: spring_profiles_active
+              value: k8s
+      imagePullSecrets:
+        - name: bmwpoc

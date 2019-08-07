@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sit-bmw-dashboardmain
+  namespace: sit
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sit-bmw-dashboardmain
+    spec:
+      containers:
+        - name: sit-bmw-dashboardmain
+          image: registry.cn-beijing.aliyuncs.com/bmwpoc/sit-bmw-dashboardmain:{version}
+          ports:
+            - name: http-port
+              containerPort: 20003
+          env:
+            - name: spring_profiles_active
+              value: k8s
+      imagePullSecrets:
+        - name: bmwpoc

@@ -1,0 +1,46 @@
+#!groovy
+node {   
+// '##################Creditial SETUP########################'
+def GIT_URL = 'git@github.com:bmw-poc/dashboard-main.git'
+def GIT_CRED = 'gitcom-user-bchen'
+
+def SONAR_CRED = 'sonar-token'
+String DOCKER_REPO="registry.cn-beijing.aliyuncs.com/bmwpoc"
+
+String DOCKER_REG="https://" + DOCKER_REPO + "/"
+String DOCKER_REG_KEY = "9643e3f4-6725-4294-a8ca-94a156195e8f"
+
+def PRODUCT_NAME=env.JOB_NAME.toLowerCase()
+
+String IMAGE_NAME="${PRODUCT_NAME}"
+def UAT_PASS_IMAGE_NAME = IMAGE_NAME.replace("pro-", "uat-")
+String IMAGE_TAG=env.BUILD_NUMBER
+
+//################# CI PART ###################################
+
+    stage('Setup Environment') {
+        checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: GIT_CRED, url: GIT_URL]]])
+    }
+
+    //################# Tag Image from UAT Pass ###################################
+       stage("Build image and Deploy to Env "){
+       docker.withRegistry(DOCKER_REG,DOCKER_REG_KEY){
+			sh "docker pull ${DOCKER_REPO}/${UAT_PASS_IMAGE_NAME}:pass"
+			sh "docker tag ${DOCKER_REPO}/${UAT_PASS_IMAGE_NAME}:pass ${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}"
+			sh "docker push ${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}"
+            }
+	   sh "sed -i 's/{version}/" + IMAGE_TAG + "/g' ./ci/${env.JOB_NAME}.yaml"
+	   sh "kubectl apply -f ./ci/${env.JOB_NAME}.yaml"
+    }      
+
+	
+	//################# Tag Image for PRO Env ###################################
+	   stage("Complete The pipeline"){
+       docker.withRegistry(DOCKER_REG,DOCKER_REG_KEY){
+			  sh "docker tag ${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REPO}/${IMAGE_NAME}:pass"
+              sh "docker push ${DOCKER_REPO}/${IMAGE_NAME}:pass"
+			  sh "docker tag ${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REPO}/${IMAGE_NAME}:latest"
+			  sh "docker push ${DOCKER_REPO}/${IMAGE_NAME}:latest"
+            }
+    } 
+}
