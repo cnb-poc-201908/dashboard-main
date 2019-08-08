@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bmw.entity.Customer;
+import com.bmw.entity.Items;
 import com.bmw.entity.RepairOrder;
 import com.bmw.entity.RepairOrderDetail;
+import com.bmw.entity.RepairOrderList;
 import com.bmw.entity.Result;
 import com.bmw.main.service.CDKService;
 import com.bmw.main.service.FeignService;
@@ -94,7 +96,7 @@ public class MainController {
 	@PostMapping("/updateRepairOrder")
     public Result updateRepairOrder(@ApiParam("repairOrder") @RequestBody RepairOrder repairOrder) {
 		
-		Optional<RepairOrder> option = DataStore.getOrders().stream().filter(order-> repairOrder.getRepairOrderId().equals(order.getRepairOrderId())).findAny();
+		Optional<Items> option = DataStore.getOrders().stream().filter(order-> repairOrder.getRepairOrderId().equals(order.getRepairOrderId())).findAny();
 		if(option.isPresent()){
 			Optional<RepairOrderDetail> op = DataStore.getOrdersDetails().stream().filter(detail-> repairOrder.getRepairOrderId().equals(detail.getRepairOrderId())).findAny();
 			if(StringUtils.isNotBlank(repairOrder.getStatus()))

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,9 +14,10 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import com.bmw.entity.Items;
 import com.bmw.entity.RepairOrder;
 import com.bmw.entity.RepairOrderDetail;
-import com.bmw.entity.ResponseRepairOrder;
+import com.bmw.entity.RepairOrderList;
 import com.bmw.main.service.CDKService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DataStore implements ApplicationRunner{
 
-	private static final List<RepairOrder> repairOrderList = new ArrayList<RepairOrder>();
+	private static final List<Items> repairOrderList = new ArrayList<Items>();
 	private static final List<RepairOrderDetail> repairOrderDetailList = new ArrayList<RepairOrderDetail>();
 	
 	final static ObjectMapper mapper = new ObjectMapper();
@@ -37,7 +39,7 @@ public class DataStore implements ApplicationRunner{
 	@Autowired
 	private CDKService cDKClient;
 	
-	public static List<RepairOrder> getOrders(){
+	public static List<Items> getOrders(){
 		return repairOrderList;
 	}
 	
@@ -45,9 +47,10 @@ public class DataStore implements ApplicationRunner{
 		return repairOrderDetailList;
 	}
 	
-	public List<RepairOrder> test(){
+	public List<Items> test(){
 		return repairOrderList;
 	}
+	
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -59,13 +62,23 @@ public class DataStore implements ApplicationRunner{
 //		if(totalItems>0){
 //			repairOrderList.addAll(mapper.treeToValue(node.get("items"), List.class));
 //		}
-		ResponseRepairOrder responseRepairOrder = mapper.readValue(str, ResponseRepairOrder.class);
-		if(responseRepairOrder.getItems() !=null){
-			repairOrderList.addAll(responseRepairOrder.getItems());
-			repairOrderDetailList.addAll(responseRepairOrder.getItems().parallelStream().map(repairOrder -> {
+		RepairOrderList list = mapper.readValue(str, RepairOrderList.class);
+		if(list.getItems() !=null){
+			repairOrderList.addAll(list.getItems());
+			repairOrderDetailList.addAll(list.getItems().parallelStream().map(repairOrder -> {
 				String detailStr = cDKClient.fetchRepairOrderById("MBOBI", "987501",repairOrder.getRepairOrderId());
 				try {
-					return mapper.readValue(detailStr, RepairOrderDetail.class);
+					RepairOrderDetail r =  mapper.readValue(detailStr, RepairOrderDetail.class);
+//				    private boolean isActive;
+					repairOrder.setVehicleLicensePlate(r.getVehicle().getIdentification().getLicensePlate());
+					repairOrder.setAmountLabor(JsonUtils.randomAmountLabor());
+					repairOrder.setVehicleDescription(r.getVehicle().getDescription());
+					repairOrder.setVehicleVIN(r.getVehicle().getIdentification().getVin());
+					repairOrder.setAssignedAdvisorName(r.getResources().getAssignedAdvisor().getName());
+					repairOrder.setDetailsNotes(r.getDetails().getNotes());
+					repairOrder.setDueOutDateTime(r.getAppointment().getDueOutDateTime());
+					repairOrder.setActivity(JsonUtils.randomActivity());
+					return r;
 				} catch (IOException e) {
 					log.error(e.getMessage());
 				}

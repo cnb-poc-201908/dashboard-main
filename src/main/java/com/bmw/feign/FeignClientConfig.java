@@ -36,6 +36,11 @@ public class FeignClientConfig {
 	private BaseRedisService baseRedisService;
 
 	@Bean
+    Logger.Level feignLoggerLevel() {
+            return Logger.Level.FULL;
+    } 
+	
+	@Bean
     FeignLoggerFactory infoFeignLoggerFactory() {
         return new InfoFeignLoggerFactory();
     }
@@ -52,8 +57,8 @@ public class FeignClientConfig {
 	public CDKService cDKClient(Contract contract, Decoder decoder, Encoder encoder) {
 		return Feign.builder()
 //				.contract(new SpringMvcContract())
-				.logger(new Slf4jLogger())
-				.logLevel(Logger.Level.FULL)
+//				.logger(new Slf4jLogger())
+//				.logLevel(Logger.Level.FULL)
 				.requestInterceptor(requestTemplate -> {
 					String token = (String) baseRedisService.get("token");
 					if (StringUtils.isEmpty(token)) {
