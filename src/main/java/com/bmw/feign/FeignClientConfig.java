@@ -62,6 +62,7 @@ public class FeignClientConfig {
 					}
 					log.info("RequestInterceptor:{}", token);
 					requestTemplate.header("Authorization", "Bearer " + token);
+					requestTemplate.header("Accept-Language", "zh-CN");
 				}).target(CDKService.class, serviceUri);
 	}
 }
