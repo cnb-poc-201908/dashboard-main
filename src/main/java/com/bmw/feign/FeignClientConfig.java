@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.cloud.openfeign.FeignLoggerFactory;
-import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -20,7 +19,6 @@ import feign.Feign;
 import feign.Logger;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
-import feign.slf4j.Slf4jLogger;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -57,8 +55,8 @@ public class FeignClientConfig {
 	public CDKService cDKClient(Contract contract, Decoder decoder, Encoder encoder) {
 		return Feign.builder()
 //				.contract(new SpringMvcContract())
-//				.logger(new Slf4jLogger())
-//				.logLevel(Logger.Level.FULL)
+				.logger(new InfoFeignLoggerFactory().create(getClass()))
+				.logLevel(Logger.Level.FULL)
 				.requestInterceptor(requestTemplate -> {
 					String token = (String) baseRedisService.get("token");
 					if (StringUtils.isEmpty(token)) {

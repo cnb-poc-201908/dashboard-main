@@ -50,6 +50,9 @@ public class MainController {
 	@Autowired
 	private CDKService cDKClient;
 	
+	@Autowired
+	private DataStore dataStore;
+	
 	@GetMapping("/test")
 	public String test() throws JsonProcessingException {
 		log.info("test.");
@@ -77,7 +80,7 @@ public class MainController {
         return new Result().success(customer);
     }
 	
-	@GetMapping("/customer2")
+	@GetMapping("/progress-customer")
     public Result fetchCustomer2() throws JsonParseException, JsonMappingException, IOException {
 		Result result = feignService.fetchCustomer();
         return new Result().success(result.getData());
@@ -85,20 +88,20 @@ public class MainController {
 	
 	@GetMapping("/orders")
     public Result repairOrders() throws JsonParseException, JsonMappingException, IOException {
-        return new Result().success(DataStore.getOrders());
+        return new Result().success(dataStore.getOrders());
     }
 	
 	@GetMapping("/order/{id}")
     public Result fetchRepairDetailById(@ApiParam("repairOrderId") @PathVariable("id") String id) {
-        return new Result().success(DataStore.getOrdersDetails().stream().filter(order -> id.equals(order.getRepairOrderId())));
+        return new Result().success(dataStore.getOrdersDetails().stream().filter(order -> id.equals(order.getRepairOrderId())));
     }
 	
 	@PostMapping("/updateRepairOrder")
     public Result updateRepairOrder(@ApiParam("repairOrder") @RequestBody RepairOrder repairOrder) {
 		
-		Optional<Items> option = DataStore.getOrders().stream().filter(order-> repairOrder.getRepairOrderId().equals(order.getRepairOrderId())).findAny();
+		Optional<Items> option = dataStore.getOrders().stream().filter(order-> repairOrder.getRepairOrderId().equals(order.getRepairOrderId())).findAny();
 		if(option.isPresent()){
-			Optional<RepairOrderDetail> op = DataStore.getOrdersDetails().stream().filter(detail-> repairOrder.getRepairOrderId().equals(detail.getRepairOrderId())).findAny();
+			Optional<RepairOrderDetail> op = dataStore.getOrdersDetails().stream().filter(detail-> repairOrder.getRepairOrderId().equals(detail.getRepairOrderId())).findAny();
 			if(StringUtils.isNotBlank(repairOrder.getStatus()))
 				option.get().setStatus(repairOrder.getStatus());
 			if(op.isPresent())
@@ -111,15 +114,21 @@ public class MainController {
 	
 	@GetMapping("/queryRepairOrder/{queryStr}")
     public Result queryRepairOrder(@ApiParam("queryStr") @PathVariable("queryStr") String queryStr) {
-       return new Result().success(DataStore.getOrders().parallelStream().filter(order ->
+       return new Result().success(dataStore.getOrders().parallelStream().filter(order ->
 		{
-			Optional<RepairOrderDetail> aaa = DataStore.getOrdersDetails().parallelStream()
+			Optional<RepairOrderDetail> aaa = dataStore.getOrdersDetails().parallelStream()
 					.filter(detail -> (detail.getVehicle().getIdentification().getVin().contains(queryStr) 
 									|| detail.getVehicle().getIdentification().getLicensePlate().contains(queryStr)) 
 									&& order.getRepairOrderId().equals(detail.getRepairOrderId())
 						).findAny();
 			return aaa.isPresent();
 		}).collect(Collectors.toList()));
+    }
+	
+	@GetMapping("/refresh")
+    public Result refresh() throws JsonParseException, JsonMappingException, IOException {
+		dataStore.init();
+		return new Result().success();
     }
 	
 }
