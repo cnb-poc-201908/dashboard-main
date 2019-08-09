@@ -51,6 +51,8 @@ public class DataStore{
 	}
 	
 	public void init() throws JsonParseException, JsonMappingException, IOException{
+		repairOrderList.clear();
+		repairOrderDetailList.clear();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		LocalDateTime now = LocalDateTime.now();
         String nowText = now.format(formatter);
